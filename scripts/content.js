@@ -56,7 +56,7 @@ function insertTranscript(captionsText) {
     transcriptView.classList.add("Color-secondary-text", "type--caption");
     transcriptView.style.color = "white";
     transcriptView.id = badgeId;
-    transcriptView.innerHTML = captionsText;
+    transcriptView.innerHTML = captionsText.replace(/\n/g, "<br>");
     transcriptView.style.overflow = "scroll";
     transcriptView.style.height = "400px";
     transcriptView.style.fontSize = "20px";
@@ -102,11 +102,8 @@ async function formatTranscript(transcript) {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
-      console.log(data.transcript);
-      //   const transcript = JSON.parse(data).transcript;
-      console.log(`formatted transcript1 ${data}`);
-      console.log(`formatted transcript2 ${data.transcript}`);
+      insertTranscript(data.transcript);
+      console.log(`formatted transcript ${data.transcript}`);
     })
     .catch((error) => console.error(error));
 }
