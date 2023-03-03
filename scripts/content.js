@@ -4,6 +4,7 @@ document.addEventListener("yt-navigate-finish", function (event) {
   if (isVideoPage()) {
     (async () => {
       const subText = await fetchCaptionFromVideo();
+      formatTranscript(subText);
       insertTranscript(subText);
     })();
   }
@@ -85,7 +86,27 @@ async function fetchCaption(baseUrl) {
     .map((x) => x.textContent)
     .join("\n")
     .replaceAll("&#39;", "'");
-  subsText = subsText.replace(/\n/g, "<br>");
+  subsText = subsText.replace(/\n/g, " ");
   //   console.log(subsText);
   return subsText;
+}
+
+async function formatTranscript(transcript) {
+  transcript = transcript.substring(0, 4000);
+  const data = { transcript: transcript };
+
+  fetch("http://127.0.0.1:5000/transcript", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      console.log(data.transcript);
+      //   const transcript = JSON.parse(data).transcript;
+      console.log(`formatted transcript1 ${data}`);
+      console.log(`formatted transcript2 ${data.transcript}`);
+    })
+    .catch((error) => console.error(error));
 }
