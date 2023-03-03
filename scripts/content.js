@@ -1,5 +1,14 @@
 const tag = "Transcript:";
 
+document.addEventListener("yt-navigate-finish", function (event) {
+  if (isVideoPage()) {
+    (async () => {
+      const subText = await fetchCaptionFromVideo();
+      insertTranscript(subText);
+    })();
+  }
+});
+
 function getVideoId() {
   // Get the current YouTube video URL
   let videoUrl = window.location.href;
@@ -13,7 +22,7 @@ function getVideoId() {
   }
 
   // Log the video ID to the console
-  console.log(`${tag} ${videoId}`);
+  //   console.log(`${tag} ${videoId}`);
   return videoId;
 }
 
@@ -29,9 +38,9 @@ function isVideoPage() {
 }
 
 function insertTranscript(captionsText) {
-  console.log(`Transcript2 ${captionsText}`);
-
-  const player = document.querySelector("#columns #primary #below");
+  const player = document.querySelector(
+    "#columns #primary #below #above-the-fold"
+  );
 
   // `document.querySelector` may return null if the selector doesn't match anything.
   if (player) {
@@ -41,36 +50,31 @@ function insertTranscript(captionsText) {
     if (previousBadge) {
       previousBadge.remove();
     }
-    const badge = document.createElement("a");
+    const transcriptView = document.createElement("a");
     // Use the same styling as the publish information in an article's header
-    badge.classList.add("Color-secondary-text", "type--caption");
-    // badge.textContent = caption;
-    badge.style.color = "white";
-    badge.id = badgeId;
-    // let element = document.getElementById(badgeId);
-    badge.innerHTML = captionsText;
-    badge.style.overflow = "scroll";
-    badge.style.height = "400px";
-    badge.style.fontSize = "20px";
-    // Support for article docs with date
-    console.log(`Transcript ${captionsText}`);
-    player.insertAdjacentElement("beforebegin", badge);
+    transcriptView.classList.add("Color-secondary-text", "type--caption");
+    transcriptView.style.color = "white";
+    transcriptView.id = badgeId;
+    transcriptView.innerHTML = captionsText;
+    transcriptView.style.overflow = "scroll";
+    transcriptView.style.height = "400px";
+    transcriptView.style.fontSize = "20px";
+    player.insertAdjacentElement("afterend", transcriptView);
   }
 }
 
-async function fetchVideo() {
+async function fetchCaptionFromVideo() {
   const url = window.location.href;
   const text = await (await fetch(url)).text();
   const match = text.match(
     /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+meta|<\/script|\n)/
   )[1];
   const data = JSON.parse(match);
+  // todo: get subtitle of different language
   const baseUrl =
     data.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
-
-  console.log(`match ${baseUrl}`);
-
-  fetchCaption(baseUrl);
+  //   console.log(`match ${baseUrl}`);
+  return await fetchCaption(baseUrl);
 }
 
 async function fetchCaption(baseUrl) {
@@ -81,11 +85,7 @@ async function fetchCaption(baseUrl) {
     .map((x) => x.textContent)
     .join("\n")
     .replaceAll("&#39;", "'");
-  subsText = subsText.replace(/\n/g, " ");
-  console.log(subsText);
-  insertTranscript(subsText);
+  subsText = subsText.replace(/\n/g, "<br>");
+  //   console.log(subsText);
+  return subsText;
 }
-
-document.addEventListener("yt-navigate-finish", function (event) {
-  fetchVideo();
-});
