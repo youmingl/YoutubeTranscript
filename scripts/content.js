@@ -92,7 +92,6 @@ async function fetchCaption(baseUrl) {
 }
 
 async function formatTranscript(transcript) {
-  transcript = transcript.substring(0, 4000);
   const data = { transcript: transcript };
 
   fetch("http://127.0.0.1:5000/transcript", {
