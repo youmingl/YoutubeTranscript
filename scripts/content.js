@@ -100,8 +100,16 @@ async function formatTranscript(transcript) {
   })
     .then((response) => response.json())
     .then((data) => {
+      let transcript = "";
+      if (data.error != null) {
+        transcript = data.error;
+      } else {
+        transcript = data.transcript;
+      }
       insertTranscript(data.transcript);
-      console.log(`formatted transcript ${data.transcript}`);
+      console.log(
+        `formatted transcript ${data.transcript} error: ${data.error}`
+      );
     })
     .catch((error) => console.error(error));
 }
