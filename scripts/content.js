@@ -51,16 +51,29 @@ function insertTranscript(captionsText) {
     if (previousBadge) {
       previousBadge.remove();
     }
-    const transcriptView = document.createElement("a");
-    // Use the same styling as the publish information in an article's header
+    const parentDiv = document.createElement("div");
+    parentDiv.id = badgeId;
+
+    // title element
+    const transcriptTitle = document.createElement("a");
+    transcriptTitle.classList.add("Color-secondary-text", "type--caption");
+    transcriptTitle.style.color = "white";
+    transcriptTitle.style.fontSize = "16px";
+    transcriptTitle.style.fontWeight = "bold";
+    transcriptTitle.innerText = "-------Transcript---------";
+
+    // transcript element
+    const transcriptView = document.createElement("div");
+    parentDiv.appendChild(transcriptTitle);
+    parentDiv.appendChild(transcriptView);
     transcriptView.classList.add("Color-secondary-text", "type--caption");
     transcriptView.style.color = "white";
-    transcriptView.id = badgeId;
+    transcriptView.style.overflow = "auto";
     transcriptView.innerHTML = captionsText.replace(/\n/g, "<br>");
-    transcriptView.style.overflow = "scroll";
     transcriptView.style.height = "400px";
-    transcriptView.style.fontSize = "20px";
-    player.insertAdjacentElement("afterend", transcriptView);
+    transcriptView.style.fontSize = "16px";
+
+    player.insertAdjacentElement("afterend", parentDiv);
   }
 }
 
