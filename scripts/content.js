@@ -93,8 +93,7 @@ async function fetchCaption(baseUrl) {
 
 async function formatTranscript(transcript) {
   const data = { transcript: transcript };
-
-  fetch("http://127.0.0.1:5000/transcript", {
+  fetch("http://127.0.0.1:12345/transcript", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
