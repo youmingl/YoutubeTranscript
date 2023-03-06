@@ -1,5 +1,7 @@
 const tag = "Transcript:";
-
+const public_ip = "https://www.lingolabai.com";
+const local_ip = "http://127.0.0.1:12345";
+const ip_url = public_ip;
 document.addEventListener("yt-navigate-finish", function (event) {
   if (isVideoPage()) {
     (async () => {
@@ -106,7 +108,8 @@ async function fetchCaption(baseUrl) {
 
 async function formatTranscript(transcript) {
   const data = { transcript: transcript };
-  fetch("http://127.0.0.1:12345/transcript", {
+  const url = ip_url + "/transcript";
+  fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
