@@ -4,7 +4,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 
 const SERVER_URL = 'https://chatailab.com'
-
+const NO_TRANSCRIPT = 'No transcript available'
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 function App() {
@@ -15,7 +15,11 @@ function App() {
       if (isVideoPage()) {
         (async () => {
           const subText = await fetchCaptionFromVideo();
-          formatTranscript(subText);
+          if (subText === NO_TRANSCRIPT) {
+            setTranscript(subText);
+          } else {
+            formatTranscript(subText);
+          }
         })();
       }
     });
@@ -42,10 +46,14 @@ function App() {
     )[1];
     const data = JSON.parse(match);
     // todo: get subtitle of different language
-    const baseUrl =
+    if (data.captions && data.captions.playerCaptionsTracklistRenderer) {
+      const baseUrl =
       data.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
-    //   console.log(`match ${baseUrl}`);
-    return await fetchCaption(baseUrl);
+      //   console.log(`match ${baseUrl}`);
+      return await fetchCaption(baseUrl);
+    } else {
+      return NO_TRANSCRIPT;
+    }
   }
 
   const fetchCaption= async (baseUrl: string) => {
