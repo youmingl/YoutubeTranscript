@@ -3,7 +3,7 @@ import './App.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 
-const SERVER_URL = 'https://34.220.200.14'
+const SERVER_URL = 'https://chatailab.com'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -21,23 +21,6 @@ function App() {
     });
   }, []); 
 
-  const getVideoId = () => {
-    // Get the current YouTube video URL
-    let videoUrl = window.location.href;
-
-    // Extract the video ID from the URL
-    let videoId = videoUrl.split("v=")[1];
-
-    // Check if there is an ampersand after the video ID (which separates the ID from other parameters)
-    if (videoId.includes("&")) {
-      videoId = videoId.split("&")[0];
-    }
-
-    // Log the video ID to the console
-    //   console.log(`${tag} ${videoId}`);
-    return videoId;
-  }
-
   const isVideoPage = () => {
     let videoUrl = window.location.href;
     // Check if the URL contains "youtube.com/watch"
@@ -46,45 +29,6 @@ function App() {
       return true;
     } else {
       return false;
-    }
-  }
-
-  const insertTranscript = (captionsText: string) => {
-    const player = document.querySelector(
-      "#columns #primary #below #above-the-fold"
-    );
-
-    // `document.querySelector` may return null if the selector doesn't match anything.
-    if (player) {
-      let badgeId = "full-transcript";
-
-      const previousBadge = document.getElementById(badgeId);
-      if (previousBadge) {
-        previousBadge.remove();
-      }
-      const parentDiv = document.createElement("div");
-      parentDiv.id = badgeId;
-
-      // title element
-      const transcriptTitle = document.createElement("a");
-      transcriptTitle.classList.add("Color-secondary-text", "type--caption");
-      transcriptTitle.style.color = "white";
-      transcriptTitle.style.fontSize = "16px";
-      transcriptTitle.style.fontWeight = "bold";
-      transcriptTitle.innerText = "-------Transcript---------";
-
-      // transcript element
-      const transcriptView = document.createElement("div");
-      parentDiv.appendChild(transcriptTitle);
-      parentDiv.appendChild(transcriptView);
-      transcriptView.classList.add("Color-secondary-text", "type--caption");
-      transcriptView.style.color = "white";
-      transcriptView.style.overflow = "auto";
-      transcriptView.innerHTML = captionsText.replace(/\n/g, "<br>");
-      transcriptView.style.height = "400px";
-      transcriptView.style.fontSize = "16px";
-
-      player.insertAdjacentElement("afterend", parentDiv);
     }
   }
 
@@ -137,7 +81,7 @@ function App() {
 
   return (
     <div className="as-transcript">
-      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{transcript}</div>}
+      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{transcript.replace(/(?:\r\n|\r|\n)/g, '<br>')}</div>}
     </div>
   );
 }
