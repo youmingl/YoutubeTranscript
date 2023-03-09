@@ -79,9 +79,14 @@ function App() {
     .catch((err) => {console.log(err)});
   }
 
+  const newlineText = (text: string) => {
+    const newText = text.split('\n').map(str => <p>{str}</p>);
+    
+    return newText;
+  }
   return (
     <div className="as-transcript">
-      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{transcript.replace(/(?:\r\n|\r|\n)/g, '<br>')}</div>}
+      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{newlineText(transcript)}</div>}
     </div>
   );
 }
