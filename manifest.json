@@ -11,7 +11,7 @@
       },
       "content_scripts": [
         {
-          "js": ["scripts/content.js"],
+          "js": ["extension/content2.js"],
           "matches": [
             "*://youtube.com/*",
             "*://www.youtube.com/*",
