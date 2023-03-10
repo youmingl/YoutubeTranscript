@@ -3,6 +3,10 @@
     "name": "Youtube Transcript",
     "version": "1.0",
     "description": "Display all transcript for the video",
+    "action": {
+      "default_popup": "index.html",
+      "default_title": "Open the popup"
+    },
     "icons": {
         "16": "images/icon.png",
         "32": "images/icon.png",
@@ -19,6 +23,5 @@
           ],
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
-      ],
-      "action": {}
+      ]
   }
