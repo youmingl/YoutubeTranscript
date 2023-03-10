@@ -9,6 +9,10 @@
         "48": "images/icon.png",
         "128": "images/icon.png"
       },
+      "action": {
+        "default_popup": "scripts/index.html",
+        "default_title": "Open the popup"
+    },
       "content_scripts": [
         {
           "js": ["scripts/content2.js"],
@@ -20,5 +24,12 @@
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
       ],
-      "action": {}
+      "oauth2": {
+        "client_id": "267861215901-ers016luqsc9lp9evp0srrbc0pdpgukt.apps.googleusercontent.com",
+        "scopes":[""]
+      },
+      "permissions":[
+        "identity"
+      ],
+      "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArfpeqIaoQmB3hKidMu6DjhJnjBPfY48udP/E3qj+d3Bp2dxzGXI5UYLO7uO5qfxV7yYNZ7X15P96TsYe4K+0n1FGbTygGm5qj/cVrz3/wzkfdRzbmdqEMBRM0aQFFww+hqo248w8LC6OojS4B8a4P9xKw766H3Wd9oy7MTVsJzaTVQqcLH2pm3wBFr5q9JdCugP2jbPrZXi0CiSd1XN2bWU0yCc1Ka96syRQmna9d4bUuOTsVFB2Aj8jyJCvpRVxyTew5nT80aWbtkganz4fHYkSSj/UUd+oIEcNWjE5W9mkBAZz9ftwHdA6anogF8vV/q/hn/QnQ7OuXZcSRlFUKwIDAQAB"
   }

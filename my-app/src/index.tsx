@@ -1,4 +1,5 @@
-import React from 'react';
+/*global chrome*/
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -24,10 +25,16 @@ setInterval(() => {
   }
 }, 1000)
 
+function handleClick() {
+  chrome.identity.getAuthToken({interactive: true}, function(token) {
+    console.log(token);
+  });
+}
+
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <button onClick={handleClick}>
+    Sign in with Google
+  </button>
 );
 
 // If you want to start measuring performance in your app, pass a function
