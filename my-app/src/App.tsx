@@ -1,12 +1,17 @@
+import React, { Component } from 'react';
 import { useState, useEffect } from 'react';
 import './App.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
+// import { chrome } from 'chrome';
 
-const SERVER_URL = 'https://chatailab.com'
+// const SERVER_URL = 'https://chatailab.com'
+const SERVER_URL = 'http://127.0.0.1:12345'
+
 const NO_TRANSCRIPT = 'No transcript available'
+const FORMATTED = ""
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
+let formatted = ""
 function App() {
   const [transcript, setTranscript] = useState("");
 
@@ -18,7 +23,7 @@ function App() {
           if (subText === NO_TRANSCRIPT) {
             setTranscript(subText);
           } else {
-            formatTranscript(subText);
+            cacheOrFormatTranscript(subText);
           }
         })();
       }
@@ -69,7 +74,20 @@ function App() {
     return subsText;
   }
 
+  const cacheOrFormatTranscript = async (transcript: string) => {
+    chrome.storage.session.get(["formatted"]).then((result) => {
+      if (result.key) {
+        return result.key;
+      } else {
+        formatTranscript(transcript);
+      }
+    });
+  }
+
   const formatTranscript = async (transcript: string) => {
+    chrome.storage.session.get(["formatted"]).then((result) => {
+      console.log("Value currently is " + result.key);
+    });
     const data = { transcript: transcript };
     const url = SERVER_URL + "/transcript";
     fetch(url, {
@@ -79,6 +97,9 @@ function App() {
     })
     .then((response) => response.json())
     .then((data) => {
+      chrome.storage.session.set({ "formatted": data.transcript }).then(() => {
+        console.log("Value is set to " + data.transcript);
+      });
       setTranscript(data.transcript);
       console.log(
         `formatted transcript ${data.transcript} error: ${data.error}`
@@ -88,13 +109,13 @@ function App() {
   }
 
   const newlineText = (text: string) => {
-    const newText = text.split('\n').map(str => <p>{str}</p>);
-    
+    const newText = text.split('\n').map(str => <p>{str}<br></br></p>);
     return newText;
   }
   return (
     <div className="as-transcript">
-      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{newlineText(transcript)}</div>}
+      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : 
+      <div>{newlineText(transcript)}</div>}
     </div>
   );
 }
