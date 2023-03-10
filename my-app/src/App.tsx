@@ -61,10 +61,11 @@ function App() {
     let xml = new DOMParser().parseFromString(subs, "text/xml");
     //@ts-ignore
     let textNodes = [...xml.getElementsByTagName("text")];
-    let subsText = textNodes
-      .map((x) => x.textContent)
-      .join("\n")
-      .replaceAll("&#39;", "'");
+    let subsTextNodes = textNodes
+      .map((x) => new TranscriptNode(x.textContent, x.getAttribute("start")))
+    let subsText = subsTextNodes.map((x) => x.transcript)
+    .join("\n")
+    .replaceAll("&#39;", "'");
     subsText = subsText.replace(/\n/g, " ");
     return subsText;
   }
@@ -97,6 +98,17 @@ function App() {
       {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{newlineText(transcript)}</div>}
     </div>
   );
+}
+
+class TranscriptNode {
+  transcript: string;
+  startTime: number;
+
+  constructor(transcript: string, startTime: number) {
+    this.transcript = transcript;
+    this.startTime = startTime;
+  }
+
 }
 
 export default App;
