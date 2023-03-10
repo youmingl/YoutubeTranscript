@@ -8,15 +8,16 @@ const NO_TRANSCRIPT = 'No transcript available'
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 function App() {
-  const [transcript, setTranscript] = useState("");
+  const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
 
   useEffect(() => {
+    // There is a bug here. This eventListener will be added after the event is triggered and our logic will not be executed. Will fix this later.
     document.addEventListener("yt-navigate-finish", function (event) {
       if (isVideoPage()) {
         (async () => {
           const subText = await fetchCaptionFromVideo();
           if (subText === NO_TRANSCRIPT) {
-            setTranscript(subText);
+            setTranscript([]);
           } else {
             formatTranscript(subText);
           }
@@ -61,15 +62,26 @@ function App() {
     let xml = new DOMParser().parseFromString(subs, "text/xml");
     //@ts-ignore
     let textNodes = [...xml.getElementsByTagName("text")];
-    let subsText = textNodes
-      .map((x) => x.textContent)
-      .join("\n")
-      .replaceAll("&#39;", "'");
-    subsText = subsText.replace(/\n/g, " ");
-    return subsText;
+    let subsTextNodes = textNodes
+      .map((x) => new TranscriptNode(x.textContent.replaceAll("&#39;", "'"), x.getAttribute("start")))
+    return subsTextNodes;
   }
 
-  const formatTranscript = async (transcript: string) => {
+  const jumpVideo = (time: number) => {
+    document.getElementsByTagName('video')[0].currentTime = time;
+  }
+
+  const renderTranscript = (transcripts: DisplayTranscriptSentence[]) => {
+    return transcripts.map((transcript: DisplayTranscriptSentence) => {
+      let newLineBreak = <></>
+      if (transcript.sentence.length > 0 && transcript.sentence[0] === '\n') {
+        newLineBreak = <><br /><br /></>
+      }
+      return <a className="transcript_link" onClick={() => jumpVideo(transcript.startTime)}>{newLineBreak}{transcript.sentence}</a>
+    })
+  }
+
+  const formatTranscript = async (transcript: TranscriptNode[]) => {
     const data = { transcript: transcript };
     const url = SERVER_URL + "/transcript";
     fetch(url, {
@@ -79,24 +91,39 @@ function App() {
     })
     .then((response) => response.json())
     .then((data) => {
-      setTranscript(data.transcript);
-      console.log(
-        `formatted transcript ${data.transcript} error: ${data.error}`
-      );
+      return data.transcript.map((transcriptSentence: any) => new DisplayTranscriptSentence(transcriptSentence.sentence, transcriptSentence.startTime))
+    })
+    .then((displayTranscriptSentences: DisplayTranscriptSentence[]) => {
+      setTranscript(displayTranscriptSentences);
     })
     .catch((err) => {console.log(err)});
   }
 
-  const newlineText = (text: string) => {
-    const newText = text.split('\n').map(str => <p>{str}<br></br></p>);
-    
-    return newText;
-  }
   return (
     <div className="as-transcript">
-      {transcript === '' ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div>{newlineText(transcript)}</div>}
+      {transcripts.length === 0 ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div><p>{renderTranscript(transcripts)}</p></div>}
     </div>
   );
+}
+
+class TranscriptNode {
+  transcript: string;
+  startTime: number;
+
+  constructor(transcript: string, startTime: number) {
+    this.transcript = transcript;
+    this.startTime = startTime;
+  }
+}
+
+class DisplayTranscriptSentence {
+  sentence: string;
+  startTime: number;
+
+  constructor(sentence: string, startTime: number) {
+    this.sentence = sentence;
+    this.startTime = startTime;
+  }
 }
 
 export default App;

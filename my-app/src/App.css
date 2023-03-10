@@ -4,3 +4,11 @@
   overflow: auto;
   height: 400px;
 }
+
+.transcript_link {
+  cursor: pointer;
+}
+
+.transcript_link:hover {
+  text-decoration: underline;
+}
