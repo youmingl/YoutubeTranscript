@@ -88,7 +88,7 @@ function App() {
   }
 
   const newlineText = (text: string) => {
-    const newText = text.split('\n').map(str => <p>{str}</p>);
+    const newText = text.split('\n').map(str => <p>{str}<br></br></p>);
     
     return newText;
   }
