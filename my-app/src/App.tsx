@@ -11,19 +11,23 @@ function App() {
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
 
   useEffect(() => {
+    if (isVideoPage()) {
+      (async () => {
+        const subText = await fetchCaptionFromVideo();
+        if (subText === NO_TRANSCRIPT) {
+          setTranscript([]);
+        } else {
+          formatTranscript(subText);
+        }
+      })();
+    }
     // There is a bug here. This eventListener will be added after the event is triggered and our logic will not be executed. Will fix this later.
-    document.addEventListener("yt-navigate-finish", function (event) {
-      if (isVideoPage()) {
-        (async () => {
-          const subText = await fetchCaptionFromVideo();
-          if (subText === NO_TRANSCRIPT) {
-            setTranscript([]);
-          } else {
-            formatTranscript(subText);
-          }
-        })();
-      }
-    });
+    // document.addEventListener("yt-navigate-finish", function (event) {
+    //   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+    //     if(changeInfo && changeInfo.status == "complete"){
+          
+    //     }
+    // });
   }, []); 
 
   const isVideoPage = () => {
@@ -82,6 +86,10 @@ function App() {
   }
 
   const formatTranscript = async (transcript: TranscriptNode[]) => {
+    const transcriptString = transcript.map((node: TranscriptNode) => {
+      return new DisplayTranscriptSentence('\n' + node.transcript, node.startTime)
+    });
+    setTranscript(transcriptString);
     const data = { transcript: transcript };
     const url = SERVER_URL + "/transcript";
     fetch(url, {
@@ -100,8 +108,17 @@ function App() {
   }
 
   return (
-    <div className="as-transcript">
-      {transcripts.length === 0 ? <div>Loading Transcript <Spin indicator={antIcon} /></div> : <div><p>{renderTranscript(transcripts)}</p></div>}
+    <div className="transcript-element">
+      {transcripts.length === 0 ? <div className="center">Loading Transcript <Spin indicator={antIcon} /></div> : 
+      <div>
+        <p className="center">-------Transcript-------</p>
+        <div className="transcript-content">
+        <p>
+          {renderTranscript(transcripts)}
+          </p>
+          </div>
+          </div>
+          }
     </div>
   );
 }
