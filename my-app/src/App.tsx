@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
+import { GoogleLogin } from '@react-oauth/google';
 
 const SERVER_URL = 'https://chatailab.com'
 const NO_TRANSCRIPT = 'No transcript available'
@@ -9,6 +10,18 @@ const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 function App() {
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
+
+  const handleClick = () => {
+    console.log("authentication invoked");
+    // let videoUrl = window.location.href;
+    // // Check if the URL contains "youtube.com/watch"
+    // if (videoUrl.includes("youtube.com/watch")) {
+    //   // Do something
+    //   return true;
+    // } else {
+    //   return false;
+    // }
+  }
 
   useEffect(() => {
     // There is a bug here. This eventListener will be added after the event is triggered and our logic will not be executed. Will fix this later.

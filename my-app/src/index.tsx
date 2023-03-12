@@ -1,7 +1,9 @@
+/*global chrome*/
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const rootElement = document.createElement("div");
 rootElement.id = "full-transcript";
@@ -24,11 +26,18 @@ setInterval(() => {
   }
 }, 1000)
 
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// function handleClick() {
+//   console.log();
+
+//   // chrome.identity.getAuthToken({interactive: true}, function(token) {
+//   // });
+// }
+
+// root.render(
+//   <React.StrictMode>
+//     <App />
+//   </React.StrictMode>
+// );
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
