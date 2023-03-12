@@ -21,13 +21,6 @@ function App() {
         }
       })();
     }
-    // There is a bug here. This eventListener will be added after the event is triggered and our logic will not be executed. Will fix this later.
-    // document.addEventListener("yt-navigate-finish", function (event) {
-    //   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    //     if(changeInfo && changeInfo.status == "complete"){
-          
-    //     }
-    // });
   }, []); 
 
   const isVideoPage = () => {
@@ -109,7 +102,7 @@ function App() {
 
   return (
     <div className="transcript-element">
-      {transcripts.length === 0 ? <div className="center">Loading Transcript <Spin indicator={antIcon} /></div> : 
+      {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
       <div>
         <p className="center">-------Transcript-------</p>
         <div className="transcript-content">
