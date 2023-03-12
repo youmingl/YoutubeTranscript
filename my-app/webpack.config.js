@@ -2,7 +2,11 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: {
+    app: './src/index.tsx',
+    background: './src/background.tsx',
+    oauth: './src/oauth.tsx'
+  },
   mode: 'production',
   devtool: 'source-map',
   module: {
@@ -30,13 +34,13 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'public/index.html'),
+      template: path.resolve(__dirname, 'public/login.html'),
       inject: true
     })
   ].filter(Boolean),
   output: {
     publicPath: '',
-    filename: 'content2.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, '..', 'scripts')
   }
 };

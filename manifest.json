@@ -10,12 +10,15 @@
         "128": "images/icon.png"
       },
       "action": {
-        "default_popup": "scripts/index.html",
-        "default_title": "Open the popup"
+        "default_title": "Open the popup",
+        "default_popup": "scripts/index.html"
+    },
+    "background": {
+      "service_worker": "scripts/background.js"
     },
       "content_scripts": [
         {
-          "js": ["scripts/content2.js"],
+          "js": ["scripts/app.js"],
           "matches": [
             "*://youtube.com/*",
             "*://www.youtube.com/*",
@@ -24,8 +27,12 @@
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
       ],
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; script-src 'self' 'https://apis.google.com/' 'https://accounts.google.com/'  'https://www.googleapis.com' 'https://ajax.googleapis.com'; object-src 'self'"
+        },
       "oauth2": {
-        "client_id": "267861215901-arjt6hqgluapprlta0qv7utjpqj0opne.apps.googleusercontent.com",
+        "client_id": "267861215901-l0abhe535lq2qa8neic1vqc23jirak1n.apps.googleusercontent.com",
         "scopes":["https://www.googleapis.com/auth/userinfo.email"]
       },
       "permissions":[
