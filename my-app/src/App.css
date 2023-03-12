@@ -1,8 +1,21 @@
-.as-transcript {
+.transcript-element {
   font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.8rem;
+}
+
+.transcript-content {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  padding-top: 20px;
   font-size: 1.4rem;
   overflow: auto;
   height: 400px;
+  background-color: #181818f9;
+}
+
+.transcript-loading {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.8rem;
+  text-align: center;
 }
 
 .transcript_link {
@@ -11,4 +24,8 @@
 
 .transcript_link:hover {
   text-decoration: underline;
+}
+
+.center {
+  text-align: center;
 }
