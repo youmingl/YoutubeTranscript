@@ -13,9 +13,7 @@
         {
           "js": ["scripts/content2.js"],
           "matches": [
-            "*://youtube.com/*",
-            "*://www.youtube.com/*",
-            "*://m.youtube.com/*"
+            "*://www.youtube.com/*"
           ],
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
