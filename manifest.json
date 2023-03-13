@@ -4,18 +4,16 @@
     "version": "1.0",
     "description": "Generate AI-formatted transcript for youtube video",
     "icons": {
-        "16": "images/icon-128.png",
-        "32": "images/icon-128.png",
-        "48": "images/icon-128.png",
-        "128": "images/icon-128.png"
+        "16": "images/icon.png",
+        "32": "images/icon.png",
+        "48": "images/icon.png",
+        "128": "images/icon.png"
       },
       "content_scripts": [
         {
           "js": ["scripts/content2.js"],
           "matches": [
-            "*://youtube.com/*",
-            "*://www.youtube.com/*",
-            "*://m.youtube.com/*"
+            "*://www.youtube.com/*"
           ],
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
