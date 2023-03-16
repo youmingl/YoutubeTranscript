@@ -1,4 +1,5 @@
 **/.DS_Store
-
+/my-app/package-lock.json
+/my-app/yarn.lock
 /scripts
 !/scripts/content.js
