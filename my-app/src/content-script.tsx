@@ -13,7 +13,7 @@ const injectApp = (url: string) => {
     if (!transcriptDiv) {
         transcriptDiv = document.createElement('div');
         transcriptDiv.id = 'transcript-element'
-        targetElement.insertAdjacentElement('afterend', transcriptDiv);
+        targetElement.insertAdjacentElement('beforebegin', transcriptDiv);
     }
 
     ReactDOM.render(<App url={url} />, transcriptDiv);
