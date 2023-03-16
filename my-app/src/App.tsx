@@ -7,37 +7,26 @@ const SERVER_URL = 'https://chatailab.com'
 const NO_TRANSCRIPT = 'No transcript available'
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
-function App() {
+interface AppProps {
+  url: string;
+}
+
+const App: React.FC<AppProps> = ({ url }) => {
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
 
   useEffect(() => {
-    if (isVideoPage()) {
-      (async () => {
-        const subText = await fetchCaptionFromVideo();
-        if (subText === NO_TRANSCRIPT) {
-          setTranscript([]);
-        } else {
-          formatTranscript(subText);
-        }
-      })();
-    }
-  }, []); 
-
-  const isVideoPage = () => {
-    let videoUrl = window.location.href;
-    // Check if the URL contains "youtube.com/watch"
-    if (videoUrl.includes("youtube.com/watch")) {
-      // Do something
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  const fetchCaptionFromVideo= async () => {
-    const url = window.location.href;
+    (async () => {
+      const subText = await fetchCaptionFromVideo(url);
+      if (subText === NO_TRANSCRIPT) {
+        setTranscript([]);
+      } else {
+        formatTranscript(subText);
+      }
+    })();
+  }, [url]); 
+  const fetchCaptionFromVideo= async (url: string) => {
     const text = await (await fetch(url)).text();
-
+  
     //@ts-ignore
     const match = text.match(
       /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+meta|<\/script|\n)/
@@ -53,7 +42,7 @@ function App() {
       return NO_TRANSCRIPT;
     }
   }
-
+  
   const fetchCaption= async (baseUrl: string) => {
     let subs = await (await fetch(baseUrl)).text();
     let xml = new DOMParser().parseFromString(subs, "text/xml");
@@ -63,11 +52,11 @@ function App() {
       .map((x) => new TranscriptNode(x.textContent.replaceAll("&#39;", "'"), x.getAttribute("start")))
     return subsTextNodes;
   }
-
+  
   const jumpVideo = (time: number) => {
     document.getElementsByTagName('video')[0].currentTime = time;
   }
-
+  
   const renderTranscript = (transcripts: DisplayTranscriptSentence[]) => {
     return transcripts.map((transcript: DisplayTranscriptSentence) => {
       let newLineBreak = <></>
@@ -77,11 +66,12 @@ function App() {
       return <a className="transcript_link" onClick={() => jumpVideo(transcript.startTime)}>{newLineBreak}{transcript.sentence}</a>
     })
   }
-
+  
   const formatTranscript = async (transcript: TranscriptNode[]) => {
     const transcriptString = transcript.map((node: TranscriptNode) => {
       return new DisplayTranscriptSentence('\n' + node.transcript, node.startTime)
     });
+    console.log('get transcript ', transcriptString.length);
     setTranscript(transcriptString);
     const data = { transcript: transcript };
     const url = SERVER_URL + "/transcript";
@@ -114,7 +104,9 @@ function App() {
           }
     </div>
   );
-}
+
+  // return <div className="App">URL: {url}</div>;
+};
 
 class TranscriptNode {
   transcript: string;

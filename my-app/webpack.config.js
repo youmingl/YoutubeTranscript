@@ -1,35 +1,38 @@
-const path = require("path");
+const path = require('path');
 
 module.exports = {
-  entry: "./src/index.tsx",
-  mode: "production",
-  devtool: "source-map",
+  entry: {
+    app: path.join(__dirname, 'src', 'app.tsx'),
+    background: path.join(__dirname, 'src', 'background.tsx'),
+    contentScript: path.join(__dirname, 'src', 'content-script.tsx')
+  },
+  mode: 'production',
+  devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         use: [
           {
-            loader: "ts-loader",
+            loader: 'ts-loader',
             options: {
-              compilerOptions: { noEmit: false },
-            },
-          },
+              compilerOptions: { noEmit: false }
+            }
+          }
         ],
-        exclude: /node_modules/,
+        exclude: /node_modules/
       },
       {
         test: /\.css$/i,
-        use: ["style-loader", "css-loader"],
-      },
-    ],
+        use: ['style-loader', 'css-loader']
+      }
+    ]
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: ['.tsx', '.ts', '.js']
   },
   output: {
-    publicPath: '',
-    filename: "content2.js",
-    path: path.resolve(__dirname, "..", "scripts"),
-  },
+    path: path.join(__dirname, '..', 'scripts'),
+    filename: '[name].js'
+  }
 };

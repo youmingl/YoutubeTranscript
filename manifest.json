@@ -11,12 +11,18 @@
       },
       "content_scripts": [
         {
-          "js": ["scripts/content2.js"],
+          "js": ["scripts/contentScript.js"],
           "matches": [
             "*://www.youtube.com/*"
           ],
           "exclude_matches": ["*://*.music.youtube.com/*"]
         }
       ],
-      "action": {}
+      "background": {
+        "service_worker": "scripts/background.js"
+      },
+      "action": {},
+      "permissions": [
+        "tabs"
+      ]
   }
