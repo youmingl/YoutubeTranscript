@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
+import CollapsibleTranscript from './collapsible-transcript';
 
 const SERVER_URL = 'https://chatailab.com'
 const NO_TRANSCRIPT = 'No transcript available'
@@ -38,6 +39,7 @@ const App: React.FC<AppProps> = ({ url }) => {
       }
     };
   }, [url]); 
+
   const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
     const text = await (await fetch(url, {signal : signal})).text();
   
@@ -105,18 +107,24 @@ const App: React.FC<AppProps> = ({ url }) => {
     .catch((err) => {console.log(err)});
   }
 
+  // return (
+  //   <div className="transcript-element">
+  //     {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
+  //     <div>
+  //       <p className="center">-------Transcript-------</p>
+  //       <div className="transcript-content">
+  //       <p>
+  //         {renderTranscript(transcripts)}
+  //         </p>
+  //         </div>
+  //         </div>
+  //         }
+  //   </div>
+  // );
+
   return (
-    <div className="transcript-element">
-      {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
-      <div>
-        <p className="center">-------Transcript-------</p>
-        <div className="transcript-content">
-        <p>
-          {renderTranscript(transcripts)}
-          </p>
-          </div>
-          </div>
-          }
+    <div className="App">
+      <CollapsibleTranscript />
     </div>
   );
 

@@ -4,7 +4,12 @@ module.exports = {
   entry: {
     app: path.join(__dirname, 'src', 'App.tsx'),
     background: path.join(__dirname, 'src', 'background.tsx'),
-    contentScript: path.join(__dirname, 'src', 'content-script.tsx')
+    contentScript: path.join(__dirname, 'src', 'content-script.tsx'),
+    collapsibleTranscript: path.join(
+      __dirname,
+      'src',
+      'collapsible-transcript.tsx'
+    )
   },
   mode: 'production',
   devtool: 'source-map',
