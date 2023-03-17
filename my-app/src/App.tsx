@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
@@ -13,19 +13,33 @@ interface AppProps {
 
 const App: React.FC<AppProps> = ({ url }) => {
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
-
+  const abortControllerRef = useRef<AbortController | null>(null);
   useEffect(() => {
+    if (abortControllerRef.current) {
+      // Cancel the previous fetch request
+      abortControllerRef.current.abort();
+    }
+
+    // Create a new AbortController for the new fetch request
+    abortControllerRef.current = new AbortController();
+
     (async () => {
-      const subText = await fetchCaptionFromVideo(url);
+      const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
       if (subText === NO_TRANSCRIPT) {
         setTranscript([]);
       } else {
-        formatTranscript(subText);
+        formatTranscript(subText, abortControllerRef.current!.signal);
       }
     })();
+
+    return () => { // Clean up the effect by aborting any ongoing requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [url]); 
-  const fetchCaptionFromVideo= async (url: string) => {
-    const text = await (await fetch(url)).text();
+  const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
+    const text = await (await fetch(url, {signal : signal})).text();
   
     //@ts-ignore
     const match = text.match(
@@ -37,14 +51,14 @@ const App: React.FC<AppProps> = ({ url }) => {
       const baseUrl =
       data.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
       //   console.log(`match ${baseUrl}`);
-      return await fetchCaption(baseUrl);
+      return await fetchCaption(baseUrl, signal);
     } else {
       return NO_TRANSCRIPT;
     }
   }
   
-  const fetchCaption= async (baseUrl: string) => {
-    let subs = await (await fetch(baseUrl)).text();
+  const fetchCaption= async (baseUrl: string, signal: AbortSignal) => {
+    let subs = await (await fetch(baseUrl, {signal: signal})).text();
     let xml = new DOMParser().parseFromString(subs, "text/xml");
     //@ts-ignore
     let textNodes = [...xml.getElementsByTagName("text")];
@@ -67,7 +81,7 @@ const App: React.FC<AppProps> = ({ url }) => {
     })
   }
   
-  const formatTranscript = async (transcript: TranscriptNode[]) => {
+  const formatTranscript = async (transcript: TranscriptNode[], signal: AbortSignal) => {
     const transcriptString = transcript.map((node: TranscriptNode) => {
       return new DisplayTranscriptSentence('\n' + node.transcript, node.startTime)
     });
@@ -79,6 +93,7 @@ const App: React.FC<AppProps> = ({ url }) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
+      signal: signal
     })
     .then((response) => response.json())
     .then((data) => {
