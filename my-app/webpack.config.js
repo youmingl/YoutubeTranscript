@@ -2,7 +2,6 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    app: path.join(__dirname, 'src', 'App.tsx'),
     background: path.join(__dirname, 'src', 'background.tsx'),
     contentScript: path.join(__dirname, 'src', 'content-script.tsx'),
     collapsibleTranscript: path.join(
