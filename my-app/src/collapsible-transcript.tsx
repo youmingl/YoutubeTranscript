@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import './App.css';
+import './collapsible-transcript.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
 
@@ -11,33 +11,63 @@ interface AppProps {
   url: string;
 }
 
-const App: React.FC<AppProps> = ({ url }) => {
+const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
+  
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prevUrlRef = useRef('');
+  const prevIsExpanded = useRef(false);
+
+  // set expanded as false when navigated to a new URL
   useEffect(() => {
-    if (abortControllerRef.current) {
-      // Cancel the previous fetch request
-      abortControllerRef.current.abort();
+    // Reset the isExpanded state if the URL changes
+    if (prevUrlRef.current !== url) {
+      setIsExpanded(false);
+      prevUrlRef.current = url;
+      // if navigated to a new video, clear state
+      prevIsExpanded.current = false;
+      setTranscript([]);
     }
+  }, [url]);
 
-    // Create a new AbortController for the new fetch request
-    abortControllerRef.current = new AbortController();
+  useEffect(() => {
+    if (prevIsExpanded.current !== isExpanded) {
+      if (isExpanded) {
+        // only set if it has been expanded, so toggle off and on won't trigger this again.
+        prevIsExpanded.current = isExpanded;
 
-    (async () => {
-      const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
-      if (subText === NO_TRANSCRIPT) {
-        setTranscript([]);
-      } else {
-        formatTranscript(subText, abortControllerRef.current!.signal);
+        if (abortControllerRef.current) {
+          // Cancel the previous fetch request
+          abortControllerRef.current.abort();
+        }
+    
+        // Create a new AbortController for the new fetch request
+        abortControllerRef.current = new AbortController();
+    
+        (async () => {
+          const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
+          if (subText === NO_TRANSCRIPT) {
+            setTranscript([]);
+          } else {
+            formatTranscript(subText, abortControllerRef.current!.signal);
+          }
+        })();
       }
-    })();
+    }
+    
+    // return () => { // Clean up the effect by aborting any ongoing requests
+    //   if (abortControllerRef.current && shouldAbort) {
+    //     abortControllerRef.current.abort();
+    //   }
+    // };
+  }, [isExpanded]); 
 
-    return () => { // Clean up the effect by aborting any ongoing requests
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [url]); 
   const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
     const text = await (await fetch(url, {signal : signal})).text();
   
@@ -106,21 +136,26 @@ const App: React.FC<AppProps> = ({ url }) => {
   }
 
   return (
-    <div className="transcript-element">
-      {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
-      <div>
-        <p className="center">-------Transcript-------</p>
-        <div className="transcript-content">
-        <p>
-          {renderTranscript(transcripts)}
-          </p>
-          </div>
-          </div>
-          }
+    <div className="collapsible-container">
+      <div className="collapsible-header" onClick={toggleExpand}>
+        <span className="arrow">{isExpanded ? '▼' : '▶'}</span>
+        <span className="title">{isExpanded ? 'Hide Transcript' : 'Show Transcript'}</span>
+      </div>
+      <div className={`collapsible-content ${isExpanded ? 'expanded' : ''}`}>
+        <div className="transcript-element">
+        {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
+        <div>
+          <div className="transcript-content">
+          <p>
+            {renderTranscript(transcripts)}
+            </p>
+            </div>
+            </div>
+            }
+      </div>
+      </div>
     </div>
   );
-
-  // return <div className="App">URL: {url}</div>;
 };
 
 class TranscriptNode {
@@ -143,4 +178,5 @@ class DisplayTranscriptSentence {
   }
 }
 
-export default App;
+
+export default CollapsibleTranscript;

@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-
-import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import CollapsibleTranscript from './collapsible-transcript';
 
 const injectApp = (url: string) => {
     const targetElement = document.querySelector('#columns #primary #below #above-the-fold');
@@ -16,7 +13,7 @@ const injectApp = (url: string) => {
         targetElement.insertAdjacentElement('beforebegin', transcriptDiv);
     }
 
-    ReactDOM.render(<App url={url} />, transcriptDiv);
+    ReactDOM.render(<CollapsibleTranscript url={url} />, transcriptDiv);
 };
 
 const requestCurrentUrl = (): Promise<string> => {

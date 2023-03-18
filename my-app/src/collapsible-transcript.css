@@ -1,0 +1,66 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.collapsible-container {
+  border: 1px solid #ccc;
+}
+
+.collapsible-header {
+  cursor: pointer;
+  background-color: #222121;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.8rem;
+}
+
+.arrow {
+  margin-right: 10px;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow-y: scroll;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.transcript {
+  padding: 10px;
+}
+
+.collapsible-content.expanded {
+  max-height: 400px;
+}
+
+.transcript-element {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+}
+
+.transcript-content {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+  overflow: auto;
+  height: 400px;
+  background-color: #181818f9;
+}
+
+.transcript-loading {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.transcript_link {
+  cursor: pointer;
+}
+
+.transcript_link:hover {
+  text-decoration: underline;
+}
+
+.center {
+  text-align: center;
+}
