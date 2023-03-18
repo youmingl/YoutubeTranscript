@@ -8,7 +8,8 @@ module.exports = {
       __dirname,
       'src',
       'collapsible-transcript.tsx'
-    )
+    ),
+    lruCache: path.join(__dirname, 'src', 'lru-cache.tsx')
   },
   mode: 'production',
   devtool: 'source-map',

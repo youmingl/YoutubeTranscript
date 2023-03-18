@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import './collapsible-transcript.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
+import LRUCache from './lru-cache';
 
 const SERVER_URL = 'https://chatailab.com'
 const NO_TRANSCRIPT = 'No transcript available'
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
+const TRANSCRIPT_CACHE_SIZE = 200;
+const lruCache = new LRUCache(TRANSCRIPT_CACHE_SIZE);
 interface AppProps {
   url: string;
 }
@@ -51,11 +54,17 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
         abortControllerRef.current = new AbortController();
     
         (async () => {
-          const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
-          if (subText === NO_TRANSCRIPT) {
-            setTranscript([]);
+          const cachedTranscript = await lruCache.get(url);
+          if (cachedTranscript) {
+            let formattedSentences = deserializeList(cachedTranscript);
+            setTranscript(formattedSentences);
           } else {
-            formatTranscript(subText, abortControllerRef.current!.signal);
+            const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
+            if (subText === NO_TRANSCRIPT) {
+              setTranscript([]);
+            } else {
+              formatTranscript(url, subText, abortControllerRef.current!.signal);
+            }
           }
         })();
       }
@@ -111,7 +120,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
   }
   
-  const formatTranscript = async (transcript: TranscriptNode[], signal: AbortSignal) => {
+  const formatTranscript = async (videoUril: string, transcript: TranscriptNode[], signal: AbortSignal) => {
     const transcriptString = transcript.map((node: TranscriptNode) => {
       return new DisplayTranscriptSentence('\n' + node.transcript, node.startTime)
     });
@@ -130,6 +139,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       return data.transcript.map((transcriptSentence: any) => new DisplayTranscriptSentence(transcriptSentence.sentence, transcriptSentence.startTime))
     })
     .then((displayTranscriptSentences: DisplayTranscriptSentence[]) => {
+      lruCache.set(videoUril, serializeList(displayTranscriptSentences));
       setTranscript(displayTranscriptSentences);
     })
     .catch((err) => {console.log(err)});
@@ -176,6 +186,36 @@ class DisplayTranscriptSentence {
     this.sentence = sentence;
     this.startTime = startTime;
   }
+
+  // Serialize the instance properties to a JSON string
+  serialize(): string {
+    const data = {
+      sentence: this.sentence,
+      startTime: this.startTime,
+    };
+    return JSON.stringify(data);
+  }
+
+  // Deserialize a JSON string to create a new instance of DisplayTranscriptSentence
+  static deserialize(jsonString: string): DisplayTranscriptSentence {
+    const data = JSON.parse(jsonString);
+    return new DisplayTranscriptSentence(data.sentence, data.startTime);
+  }
+}
+
+// Serialize a list of DisplayTranscriptSentence objects
+function serializeList(sentences: DisplayTranscriptSentence[]): string {
+  const serializedList = sentences.map((sentence) => sentence.serialize());
+  return JSON.stringify(serializedList);
+}
+
+// Deserialize a JSON string to create a list of DisplayTranscriptSentence objects
+function deserializeList(jsonString: string): DisplayTranscriptSentence[] {
+  const serializedList = JSON.parse(jsonString) as string[];
+  const sentences = serializedList.map((serializedSentence) =>
+    DisplayTranscriptSentence.deserialize(serializedSentence)
+  );
+  return sentences;
 }
 
 
