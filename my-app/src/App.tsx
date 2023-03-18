@@ -122,13 +122,13 @@ const App: React.FC<AppProps> = ({ url }) => {
   //   </div>
   // );
 
-  return (
-    <div className="App">
-      <CollapsibleTranscript />
-    </div>
-  );
+  // return (
+  //   <div className="App">
+  //     <CollapsibleTranscript />
+  //   </div>
+  // );
 
-  // return <div className="App">URL: {url}</div>;
+  return <div className="App">URL: {url}</div>;
 };
 
 class TranscriptNode {

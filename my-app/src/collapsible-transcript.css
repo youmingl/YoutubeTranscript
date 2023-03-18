@@ -4,7 +4,6 @@ body {
 
 .collapsible-container {
   border: 1px solid #ccc;
-  /* max-width: 300px; */
 }
 
 .collapsible-header {
@@ -13,6 +12,8 @@ body {
   padding: 10px;
   display: flex;
   align-items: center;
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.8rem;
 }
 
 .arrow {
@@ -31,4 +32,35 @@ body {
 
 .collapsible-content.expanded {
   max-height: 400px;
+}
+
+.transcript-element {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+}
+
+.transcript-content {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+  overflow: auto;
+  height: 400px;
+  background-color: #181818f9;
+}
+
+.transcript-loading {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.transcript_link {
+  cursor: pointer;
+}
+
+.transcript_link:hover {
+  text-decoration: underline;
+}
+
+.center {
+  text-align: center;
 }
