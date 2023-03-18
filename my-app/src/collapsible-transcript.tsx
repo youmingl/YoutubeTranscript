@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import './collapsible-transcript.css';
 import { LoadingOutlined } from '@ant-design/icons';
-import { isPrefixUnaryExpression } from 'typescript';
 import { Spin } from 'antd';
 
 const SERVER_URL = 'https://chatailab.com'

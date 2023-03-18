@@ -1,8 +1,4 @@
-import { useState, useEffect } from 'react';
-
-import React from 'react';
 import ReactDOM from 'react-dom';
-// import App from './App';
 import CollapsibleTranscript from './collapsible-transcript';
 
 const injectApp = (url: string) => {
