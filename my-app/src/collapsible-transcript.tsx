@@ -23,6 +23,8 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
   };
 
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
+  const [hasFormattedScript, setHasFormattedScript] = useState(false);
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevUrlRef = useRef('');
   const prevIsExpanded = useRef(false);
@@ -32,6 +34,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     // Reset the isExpanded state if the URL changes
     if (prevUrlRef.current !== url) {
       setIsExpanded(false);
+      setHasFormattedScript(false);
       prevUrlRef.current = url;
       // if navigated to a new video, clear state
       prevIsExpanded.current = false;
@@ -57,6 +60,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
           const cachedTranscript = await lruCache.get(url);
           if (cachedTranscript) {
             let formattedSentences = deserializeList(cachedTranscript);
+            setHasFormattedScript(true);
             setTranscript(formattedSentences);
           } else {
             const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
@@ -111,9 +115,9 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
   }
   
   const renderTranscript = (transcripts: DisplayTranscriptSentence[]) => {
-    return transcripts.map((transcript: DisplayTranscriptSentence) => {
+    return transcripts.map((transcript: DisplayTranscriptSentence, index: number) => {
       let newLineBreak = <></>
-      if (transcript.sentence.length > 0 && transcript.sentence[0] === '\n') {
+      if (index!= 0 && transcript.sentence.length > 0 && transcript.sentence[0] === '\n') {
         newLineBreak = <><br /><br /></>
       }
       return <a className="transcript_link" onClick={() => jumpVideo(transcript.startTime)}>{newLineBreak}{transcript.sentence}</a>
@@ -140,6 +144,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
     .then((displayTranscriptSentences: DisplayTranscriptSentence[]) => {
       lruCache.set(videoUril, serializeList(displayTranscriptSentences));
+      setHasFormattedScript(true);
       setTranscript(displayTranscriptSentences);
     })
     .catch((err) => {console.log(err)});
@@ -150,19 +155,19 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       <div className="collapsible-header" onClick={toggleExpand}>
         <span className="arrow">{isExpanded ? '▼' : '▶'}</span>
         <span className="title">{isExpanded ? 'Hide Transcript' : 'Show Transcript'}</span>
+        {(!hasFormattedScript && isExpanded) && (
+          <>
+          <span className="loading-text">Formatting Script...</span>
+          <Spin className="loading-spinner" indicator={antIcon} />
+        </>
+        )}
       </div>
       <div className={`collapsible-content ${isExpanded ? 'expanded' : ''}`}>
-        <div className="transcript-element">
-        {transcripts.length === 0 ? <div className="transcript-loading">Loading Transcript <Spin indicator={antIcon} /></div> :
-        <div>
           <div className="transcript-content">
-          <p>
+            <p>
             {renderTranscript(transcripts)}
             </p>
-            </div>
-            </div>
-            }
-      </div>
+          </div>
       </div>
     </div>
   );

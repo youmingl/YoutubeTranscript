@@ -4,16 +4,26 @@ body {
 
 .collapsible-container {
   border: 1px solid #ccc;
+  background-color: white;
+  color: black;
 }
 
 .collapsible-header {
   cursor: pointer;
-  background-color: #222121;
   padding: 10px;
   display: flex;
   align-items: center;
   font-family: 'Roboto', 'Arial', sans-serif;
   font-size: 1.8rem;
+
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ccc;
+}
+
+.loading-text {
+  margin-left: 1rem;
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 1.2rem;
 }
 
 .arrow {
@@ -35,16 +45,11 @@ body {
   overflow: auto;
 }
 
-.transcript-element {
-  font-family: 'Roboto', 'Arial', sans-serif;
-  font-size: 1.6rem;
-}
-
 .transcript-content {
   font-family: 'Roboto', 'Arial', sans-serif;
   font-size: 1.6rem;
   height: 400px;
-  background-color: #181818f9;
+  text-align: justify;
 }
 
 .transcript-loading {
@@ -63,4 +68,21 @@ body {
 
 .center {
   text-align: center;
+}
+
+/* Dark theme styles */
+@media (prefers-color-scheme: dark) {
+  .collapsible-container {
+    background-color: #181818;
+    color: white;
+  }
+
+  .collapsible-header {
+    background-color: #282828;
+    border-bottom: 1px solid #444;
+  }
+
+  .collapsible-content {
+    background-color: #181818;
+  }
 }
