@@ -23,6 +23,7 @@ body {
 .collapsible-content {
   max-height: 0;
   transition: max-height 0.3s ease-in-out;
+  overflow: hidden;
 }
 
 .transcript {
@@ -31,6 +32,7 @@ body {
 
 .collapsible-content.expanded {
   max-height: 400px;
+  overflow: auto;
 }
 
 .transcript-element {
@@ -41,7 +43,6 @@ body {
 .transcript-content {
   font-family: 'Roboto', 'Arial', sans-serif;
   font-size: 1.6rem;
-  overflow: auto;
   height: 400px;
   background-color: #181818f9;
 }
