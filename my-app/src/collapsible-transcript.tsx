@@ -6,6 +6,8 @@ import LRUCache from './lru-cache';
 
 const SERVER_URL = 'https://chatailab.com'
 const NO_TRANSCRIPT = 'No transcript available'
+const SUMMARIZE_TRANSCRIPT_SUFFIX = '/summary'
+const FORMAT_TRANSCRIPT_SUFFIX = '/format'
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 const TRANSCRIPT_CACHE_SIZE = 200;
@@ -17,17 +19,28 @@ interface AppProps {
 const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
   
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState("");
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
+  const toggleExpand = (tab: string) => {
+    if (tab === activeTab) {
+      setIsExpanded(!isExpanded);
+    } else {
+      setIsExpanded(true);
+      setActiveTab(tab);
+    }
   };
 
-  const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
-  const [hasFormattedScript, setHasFormattedScript] = useState(false);
 
+  const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
+  const [keyPoints, setKeyPoints] = useState<string>('');
+
+  const [hasFormattedScript, setHasFormattedScript] = useState(false);
+  const [hasKeyPointsGenerated, setHasKeyPointsGenerated] = useState(false);
+  const hasRequestedFormatScript = useRef(false);
+  const hasRequestedSummarizeScript = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevUrlRef = useRef('');
-  const prevIsExpanded = useRef(false);
+  // const prevIsExpanded = useRef(false);
 
   // set expanded as false when navigated to a new URL
   useEffect(() => {
@@ -35,18 +48,51 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     if (prevUrlRef.current !== url) {
       setIsExpanded(false);
       setHasFormattedScript(false);
+      setHasKeyPointsGenerated(false);
+      setActiveTab("");
+      hasRequestedFormatScript.current = false;
+      hasRequestedSummarizeScript.current = false;
       prevUrlRef.current = url;
       // if navigated to a new video, clear state
-      prevIsExpanded.current = false;
+      // prevIsExpanded.current = false;
       setTranscript([]);
+      setKeyPoints('');
     }
   }, [url]);
 
   useEffect(() => {
-    if (prevIsExpanded.current !== isExpanded) {
-      if (isExpanded) {
-        // only set if it has been expanded, so toggle off and on won't trigger this again.
-        prevIsExpanded.current = isExpanded;
+    if (isExpanded && activeTab === "key-points") {
+      if (hasRequestedSummarizeScript.current != true) {
+        hasRequestedSummarizeScript.current = true;
+        if (abortControllerRef.current) {
+          // Cancel the previous fetch request
+          abortControllerRef.current.abort();
+        }
+    
+        // Create a new AbortController for the new fetch request
+        abortControllerRef.current = new AbortController();
+    
+        (async () => {
+          const cachedKeyPoints = await lruCache.get(url + SUMMARIZE_TRANSCRIPT_SUFFIX);
+          if (cachedKeyPoints) {
+            // let formattedSentences = deserializeList(cachedTranscript);
+            setHasKeyPointsGenerated(true);
+            setKeyPoints(cachedKeyPoints);
+          } else {
+            const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
+            if (subText === NO_TRANSCRIPT) {
+              setKeyPoints('');
+            } else {
+              summarizeTranscript(url, subText, abortControllerRef.current!.signal);
+            }
+          }
+        })();
+      }
+    } else if (isExpanded && activeTab === "transcript") {
+      if (hasRequestedFormatScript.current != true) {
+        hasRequestedFormatScript.current = true;
+          // only set if it has been expanded, so toggle off and on won't trigger this again.
+        // prevIsExpanded.current = isExpanded;
 
         if (abortControllerRef.current) {
           // Cancel the previous fetch request
@@ -57,7 +103,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
         abortControllerRef.current = new AbortController();
     
         (async () => {
-          const cachedTranscript = await lruCache.get(url);
+          const cachedTranscript = await lruCache.get(url + FORMAT_TRANSCRIPT_SUFFIX);
           if (cachedTranscript) {
             let formattedSentences = deserializeList(cachedTranscript);
             setHasFormattedScript(true);
@@ -71,15 +117,10 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
             }
           }
         })();
+
       }
     }
-    
-    // return () => { // Clean up the effect by aborting any ongoing requests
-    //   if (abortControllerRef.current && shouldAbort) {
-    //     abortControllerRef.current.abort();
-    //   }
-    // };
-  }, [isExpanded]); 
+  }, [isExpanded, activeTab]);
 
   const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
     const text = await (await fetch(url, {signal : signal})).text();
@@ -123,6 +164,25 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       return <a className="transcript_link" onClick={() => jumpVideo(transcript.startTime)}>{newLineBreak}{transcript.sentence}</a>
     })
   }
+    
+  const summarizeTranscript = async (videoUril: string, transcript: TranscriptNode[], signal: AbortSignal) => {
+    const data = { transcript: transcript };
+    const url = SERVER_URL + "/summarize";
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+    .then((response) => response.json())
+    .then((response) => {
+      const summary = response.output_text;
+      // console.log(summary);
+      lruCache.set(videoUril + SUMMARIZE_TRANSCRIPT_SUFFIX, summary);
+      setKeyPoints(summary+'');
+      // return console.log("summary:" + summary);
+    })
+    .catch((err) => {console.log(err)});
+  }
   
   const formatTranscript = async (videoUril: string, transcript: TranscriptNode[], signal: AbortSignal) => {
     const transcriptString = transcript.map((node: TranscriptNode) => {
@@ -143,7 +203,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       return data.transcript.map((transcriptSentence: any) => new DisplayTranscriptSentence(transcriptSentence.sentence, transcriptSentence.startTime))
     })
     .then((displayTranscriptSentences: DisplayTranscriptSentence[]) => {
-      lruCache.set(videoUril, serializeList(displayTranscriptSentences));
+      lruCache.set(videoUril + FORMAT_TRANSCRIPT_SUFFIX, serializeList(displayTranscriptSentences));
       setHasFormattedScript(true);
       setTranscript(displayTranscriptSentences);
     })
@@ -152,23 +212,33 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
 
   return (
     <div className="collapsible-container">
-      <div className="collapsible-header" onClick={toggleExpand}>
-        <span className="arrow">{isExpanded ? '▼' : '▶'}</span>
-        <span className="title">{isExpanded ? 'Hide Transcript' : 'Show Transcript'}</span>
-        {(!hasFormattedScript && isExpanded) && (
-          <>
-          <span className="loading-text">Formatting Script...</span>
-          <Spin className="loading-spinner" indicator={antIcon} />
-        </>
-        )}
+      <div className="collapsible-tabs">
+        <button
+          className={`collapsible-tab ${activeTab === "key-points" ? "active" : ""}`}
+          onClick={() => toggleExpand("key-points")}
+        >
+          Key Points
+        </button>
+        <button
+          className={`collapsible-tab ${activeTab === "transcript" ? "active" : ""}`}
+          onClick={() => toggleExpand("transcript")}
+        >
+          Transcript
+        </button>
       </div>
-      <div className={`collapsible-content ${isExpanded ? 'expanded' : ''}`}>
-          <div className="transcript-content">
-            <p>
-            {renderTranscript(transcripts)}
-            </p>
-          </div>
-      </div>
+      {isExpanded && (
+        <div className={`collapsible-content ${isExpanded ? "expanded" : ""}`}>
+          {activeTab === "key-points" ? (
+            <div className="key-points-content">
+              <a>{keyPoints}</a>
+            </div>
+          ) : (
+            <div className="transcript-content">
+              <p>{renderTranscript(transcripts)}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
