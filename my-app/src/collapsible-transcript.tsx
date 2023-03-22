@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import './collapsible-transcript.css';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin } from 'antd';
@@ -175,7 +176,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
     .then((response) => response.json())
     .then((response) => {
-      const summary = response.output_text;
+      const summary = response.output_text.replace(/(?!^)- /g, "\n- ");
       // console.log(summary);
       lruCache.set(videoUril + SUMMARIZE_TRANSCRIPT_SUFFIX, summary);
       setKeyPoints(summary+'');
@@ -230,7 +231,14 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
         <div className={`collapsible-content ${isExpanded ? "expanded" : ""}`}>
           {activeTab === "key-points" ? (
             <div className="key-points-content">
-              <a>{keyPoints}</a>
+              <p>
+            {keyPoints.split('\n').map((line, index) => (
+              <React.Fragment key={index}>
+                {index > 0 && <br />}
+                {line}
+              </React.Fragment>
+            ))} 
+            </p>
             </div>
           ) : (
             <div className="transcript-content">
