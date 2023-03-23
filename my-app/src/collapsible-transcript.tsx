@@ -127,6 +127,16 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     }
   }, [isExpanded, activeTab]);
 
+  interface CaptionTrack {
+    baseUrl: string;
+    name: {
+      simpleText: string;
+    };
+    vssId: string;
+    languageCode: string;
+    isTranslatable: boolean;
+  }
+
   const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
     const text = await (await fetch(url, {signal : signal})).text();
   
@@ -136,11 +146,21 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     )[1];
     const data = JSON.parse(match);
     // todo: get subtitle of different language
+    console.log(`match ${match}`);
+
     if (data.captions && data.captions.playerCaptionsTracklistRenderer) {
-      const baseUrl =
-      data.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
-      //   console.log(`match ${baseUrl}`);
-      return await fetchCaption(baseUrl, signal);
+
+      // Extract the baseUrl for the captionTrack with languageCode="en" or "cn"
+      const captionTracks: CaptionTrack[] = data.captions.playerCaptionsTracklistRenderer.captionTracks;
+      const trackEn = captionTracks.find(track => track.languageCode === "en");
+      const trackCn = captionTracks.find(track => track.languageCode === "zh-Hans");
+      const baseUrl = (trackEn || trackCn)?.baseUrl;
+      if (baseUrl != null) {
+        //   console.log(`match ${baseUrl}`);
+        return await fetchCaption(baseUrl, signal);
+      } else {
+        return NO_TRANSCRIPT;
+      }
     } else {
       return NO_TRANSCRIPT;
     }
