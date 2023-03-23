@@ -35,8 +35,9 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
   const [transcripts, setTranscript] = useState<DisplayTranscriptSentence[]>([]);
   const [keyPoints, setKeyPoints] = useState<string>('');
 
-  const [hasFormattedScript, setHasFormattedScript] = useState(false);
-  const [hasKeyPointsGenerated, setHasKeyPointsGenerated] = useState(false);
+  const [keyPointsLoading, setKeyPointsLoading] = useState(false);
+  const [transcriptFormatting, setTranscriptFormatting] = useState(false);
+
   const hasRequestedFormatScript = useRef(false);
   const hasRequestedSummarizeScript = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -48,9 +49,9 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     // Reset the isExpanded state if the URL changes
     if (prevUrlRef.current !== url) {
       setIsExpanded(false);
-      setHasFormattedScript(false);
-      setHasKeyPointsGenerated(false);
       setActiveTab("");
+      setTranscriptFormatting(false);
+      setKeyPointsLoading(false);
       hasRequestedFormatScript.current = false;
       hasRequestedSummarizeScript.current = false;
       prevUrlRef.current = url;
@@ -72,12 +73,12 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     
         // Create a new AbortController for the new fetch request
         abortControllerRef.current = new AbortController();
-    
+        setKeyPointsLoading(true);
         (async () => {
           const cachedKeyPoints = await lruCache.get(url + SUMMARIZE_TRANSCRIPT_SUFFIX);
           if (cachedKeyPoints) {
             // let formattedSentences = deserializeList(cachedTranscript);
-            setHasKeyPointsGenerated(true);
+            setKeyPointsLoading(false);
             setKeyPoints(cachedKeyPoints);
           } else {
             const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
@@ -99,6 +100,8 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
           // Cancel the previous fetch request
           abortControllerRef.current.abort();
         }
+
+        setTranscriptFormatting(true);
     
         // Create a new AbortController for the new fetch request
         abortControllerRef.current = new AbortController();
@@ -107,7 +110,8 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
           const cachedTranscript = await lruCache.get(url + FORMAT_TRANSCRIPT_SUFFIX);
           if (cachedTranscript) {
             let formattedSentences = deserializeList(cachedTranscript);
-            setHasFormattedScript(true);
+            setKeyPointsLoading(false);
+            setTranscriptFormatting(false);
             setTranscript(formattedSentences);
           } else {
             const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
@@ -176,9 +180,14 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
     .then((response) => response.json())
     .then((response) => {
-      const summary = response.output_text.replace(/(?!^)- /g, "\n- ");
+      let index = 0;
+      const summary = response.output_text.replace(/- /g, () => {
+        index += 1;
+        return `\n${index}. `;
+      });
       // console.log(summary);
       lruCache.set(videoUril + SUMMARIZE_TRANSCRIPT_SUFFIX, summary);
+      setKeyPointsLoading(false);
       setKeyPoints(summary+'');
       // return console.log("summary:" + summary);
     })
@@ -205,7 +214,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
     .then((displayTranscriptSentences: DisplayTranscriptSentence[]) => {
       lruCache.set(videoUril + FORMAT_TRANSCRIPT_SUFFIX, serializeList(displayTranscriptSentences));
-      setHasFormattedScript(true);
+      setTranscriptFormatting(false);
       setTranscript(displayTranscriptSentences);
     })
     .catch((err) => {console.log(err)});
@@ -230,18 +239,31 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       {isExpanded && (
         <div className={`collapsible-content ${isExpanded ? "expanded" : ""}`}>
           {activeTab === "key-points" ? (
-            <div className="key-points-content">
+          <div className="key-points-content">
+            {keyPointsLoading ? (
+              <div className="loading-spinner">
+                 <span className="loading-text">Generating Summary... </span>
+                <Spin className="loading-spinner" indicator={antIcon} />
+              </div>
+            ) : (
               <p>
-            {keyPoints.split('\n').map((line, index) => (
-              <React.Fragment key={index}>
-                {index > 0 && <br />}
-                {line}
-              </React.Fragment>
-            ))} 
+              {keyPoints.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                  {index > 0 && <br />}
+                  {line}
+                </React.Fragment>
+              ))}
             </p>
-            </div>
+          )}
+        </div>
           ) : (
             <div className="transcript-content">
+              {transcriptFormatting ? (
+              <div className="loading-spinner">
+                 <span className="loading-text">Formatting Transcript... </span>
+                <Spin className="loading-spinner" indicator={antIcon} />
+              </div>
+            ) : (<></>) }
               <p>{renderTranscript(transcripts)}</p>
             </div>
           )}
