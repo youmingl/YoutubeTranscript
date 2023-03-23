@@ -57,6 +57,7 @@ body {
   font-size: 1.6rem;
   height: 400px;
   text-align: justify;
+  padding: 10px;
 }
 
 .transcript-loading {
