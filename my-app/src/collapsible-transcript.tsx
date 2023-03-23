@@ -146,7 +146,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     )[1];
     const data = JSON.parse(match);
     // todo: get subtitle of different language
-    console.log(`match ${match}`);
+    // console.log(`match ${match}`);
 
     if (data.captions && data.captions.playerCaptionsTracklistRenderer) {
 
@@ -154,7 +154,8 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       const captionTracks: CaptionTrack[] = data.captions.playerCaptionsTracklistRenderer.captionTracks;
       const trackEn = captionTracks.find(track => track.languageCode === "en");
       const trackCn = captionTracks.find(track => track.languageCode === "zh-Hans");
-      const baseUrl = (trackEn || trackCn)?.baseUrl;
+      const defaultTr = captionTracks[0];
+      const baseUrl = (trackEn || trackCn || defaultTr)?.baseUrl;
       if (baseUrl != null) {
         //   console.log(`match ${baseUrl}`);
         return await fetchCaption(baseUrl, signal);
