@@ -6,6 +6,8 @@ import { Spin } from 'antd';
 import LRUCache from './lru-cache';
 
 const SERVER_URL = 'https://chatailab.com'
+// const SERVER_URL = 'http://localhost:12345'
+
 const NO_TRANSCRIPT = 'No transcript available'
 const SUMMARIZE_TRANSCRIPT_SUFFIX = '/summary'
 const FORMAT_TRANSCRIPT_SUFFIX = '/format'
@@ -82,8 +84,8 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
             setKeyPoints(cachedKeyPoints);
           } else {
             const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
-            if (subText === NO_TRANSCRIPT) {
-              setKeyPoints('');
+            if (subText.transcript.length === 0) {
+              setKeyPoints('No Transcript available.');
             } else {
               summarizeTranscript(url, subText, abortControllerRef.current!.signal);
             }
@@ -115,7 +117,7 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
             setTranscript(formattedSentences);
           } else {
             const subText = await fetchCaptionFromVideo(url, abortControllerRef.current!.signal);
-            if (subText === NO_TRANSCRIPT) {
+            if (subText.transcript.length === 0) {
               setTranscript([]);
             } else {
               formatTranscript(url, subText, abortControllerRef.current!.signal);
@@ -137,7 +139,12 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     isTranslatable: boolean;
   }
 
-  const fetchCaptionFromVideo= async (url: string, signal: AbortSignal) => {
+  interface CaptionResult {
+    transcript: TranscriptNode[];
+    language: string;
+  }
+
+  const fetchCaptionFromVideo= async (url: string, signal: AbortSignal): Promise<CaptionResult> => {
     const text = await (await fetch(url, {signal : signal})).text();
   
     //@ts-ignore
@@ -155,26 +162,28 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
       const trackEn = captionTracks.find(track => track.languageCode === "en");
       const trackCn = captionTracks.find(track => track.languageCode === "zh-Hans");
       const defaultTr = captionTracks[0];
-      const baseUrl = (trackEn || trackCn || defaultTr)?.baseUrl;
+      const selectedTrack = (trackEn || trackCn || defaultTr);
+      const language = selectedTrack?.languageCode;
+      const baseUrl = selectedTrack?.baseUrl;
       if (baseUrl != null) {
         //   console.log(`match ${baseUrl}`);
-        return await fetchCaption(baseUrl, signal);
+        return await fetchCaption(baseUrl, language, signal);
       } else {
-        return NO_TRANSCRIPT;
+        return {transcript: [], language: "" };
       }
     } else {
-      return NO_TRANSCRIPT;
+      return {transcript: [], language: "" };
     }
   }
   
-  const fetchCaption= async (baseUrl: string, signal: AbortSignal) => {
+  const fetchCaption= async (baseUrl: string, language: string, signal: AbortSignal): Promise<CaptionResult>  => {
     let subs = await (await fetch(baseUrl, {signal: signal})).text();
     let xml = new DOMParser().parseFromString(subs, "text/xml");
     //@ts-ignore
     let textNodes = [...xml.getElementsByTagName("text")];
     let subsTextNodes = textNodes
       .map((x) => new TranscriptNode(x.textContent.replaceAll("&#39;", "'"), x.getAttribute("start")))
-    return subsTextNodes;
+    return { transcript: subsTextNodes, language };
   }
   
   const jumpVideo = (time: number) => {
@@ -191,9 +200,11 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     })
   }
     
-  const summarizeTranscript = async (videoUril: string, transcript: TranscriptNode[], signal: AbortSignal) => {
-    const data = { transcript: transcript };
+  const summarizeTranscript = async (videoUril: string, captionResult: CaptionResult, signal: AbortSignal) => {
+    const data = { transcript: captionResult.transcript, language: captionResult.language};
     const url = SERVER_URL + "/summarize";
+    console.log(JSON.stringify(data));
+
     fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,7 +217,6 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
         index += 1;
         return `\n${index}. `;
       });
-      // console.log(summary);
       lruCache.set(videoUril + SUMMARIZE_TRANSCRIPT_SUFFIX, summary);
       setKeyPointsLoading(false);
       setKeyPoints(summary+'');
@@ -215,13 +225,13 @@ const CollapsibleTranscript: React.FC<AppProps> = ({ url }) => {
     .catch((err) => {console.log(err)});
   }
   
-  const formatTranscript = async (videoUril: string, transcript: TranscriptNode[], signal: AbortSignal) => {
-    const transcriptString = transcript.map((node: TranscriptNode) => {
+  const formatTranscript = async (videoUril: string, captionResult: CaptionResult, signal: AbortSignal) => {
+    const transcriptString = captionResult.transcript.map((node: TranscriptNode) => {
       return new DisplayTranscriptSentence('\n' + node.transcript, node.startTime)
     });
     console.log('get transcript ', transcriptString.length);
     setTranscript(transcriptString);
-    const data = { transcript: transcript };
+    const data = { transcript: captionResult, language: captionResult.language };
     const url = SERVER_URL + "/transcript";
     fetch(url, {
       method: "POST",
